@@ -1,0 +1,38 @@
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+:root {
+	font-size: 62.5%;
+	height: 100%;
+
+	--bg-00: #1E1E1E;
+	--bg-01: #2C2C2C;
+	--bg-02: #444444;
+	--bg-alt: #111111;
+
+	--text-00: #FFFFFF;
+
+	--accent-00: #0D99FF;
+	--accent-01: #2b85e8;
+
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	background-color: var(--bg-00);
+	color: var(--text-00);
+}
+
+body {
+	font-size: 1.6rem;
+	height: 100%;
+	padding: 0;
+	margin: 0;
+	display: grid;
+	grid-template-columns: 25rem 1fr 25rem;
+	grid-template-rows: 5rem 1fr;
+}
+
+button {
+	all: initial;
+}
