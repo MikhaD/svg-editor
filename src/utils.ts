@@ -1,31 +1,45 @@
-export class Point {
-	x: number;
-	y: number;
-	selected: boolean;
-	constructor(x: number, y: number) {
-		this.x = x;
-		this.y = y;
-		this.selected = false;
+/**
+ * Return true if all the characters are letters
+ * @param c A string to check
+ */
+export function isAlpha(c: string) {
+	for (const char of c) {
+		if (!((char >= "a" && char <= "z") || (char >= "A" && char <= "Z"))) return false;
 	}
-	toString() {
-		return `${this.x},${this.y}`;
-	}
+	return true;
 }
 
-export class SimpleShape {
-	points: Point[];
-	relative: boolean;
-	constructor() {
-		this.points = [];
-		this.relative = false;
+/**
+ * Return true if all the characters are numbers, periods, or hyphens, and if the string is longer
+ * than 1 character if the the entire string is a valid number
+ * @param c A string to check
+ */
+export function isNumeric(c: string) {
+	if (isNaN(+c) && c != "." && c != "-") return false;
+	for (const char of c) {
+		if ((char < "0" || char > "9") && char != "." && char != "-") return false;
 	}
-	addPoint(x: number, y: number) {
-		this.points.push(new Point(x, y));
+	return true;
+}
+
+/**
+ * Return true if all the characters in the string are uppercase
+ * @param c A string to check
+ */
+export function isUpper(c: string) {
+	for (const char of c) {
+		if (char >= "a" && char <= "z") return false;
 	}
-	toString() {
-		if (this.points.length == 0) return "";
-		return `M${this.points.join("L")}z`;
-	}
+	return true;
+}
+
+/**
+ * Round a number to the nearest multiple of another number
+ * @param num - The number to round
+ * @param nearest - The number to round to the nearest multiple of
+ */
+export function roundToNearest(num: number, nearest: number = 1) {
+	return Math.round(num / nearest) * nearest;
 }
 
 interface ShortcutData {
@@ -115,13 +129,4 @@ export class Shortcut {
 	toString() {
 		return `${this.ctrl ? "Ctrl+" : ""}${this.shift ? "Shift+" : ""}${this.alt ? "Alt+" : ""}${this.key}`;
 	}
-}
-
-/**
- * Round a number to the nearest multiple of another number
- * @param num - The number to round
- * @param nearest - The number to round to the nearest multiple of
- */
-export function roundToNearest(num: number, nearest: number) {
-	return Math.round(num / nearest) * nearest;
 }

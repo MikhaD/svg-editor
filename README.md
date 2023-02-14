@@ -4,10 +4,5 @@ A simple vector graphics editor. I frequently find myself hand modifying SVGs I 
 - Simple SVG editor to make making simple SVG diagrams for my notes easier
 - If this works out I would like to integrate this into an obsidian plugin & maybe even a VS Code extension
 - If this works out I may want to consider moving as much of the logic into Rust WASM as possible
-# To Do
-- [ ] All actions need to be added to a stack with an undo/redo function
-- [ ] Get the damn cursors working
-- [ ] Figure out how to snap to svg points using one of the TOA algorithms
-- [ ] Add tooltip system from muscles project
-- [ ] Add shape tool & think about how to go about making sub states for the different shapes. Sub states are likely going to be very important, think move when a shape is selected vs not.
-- [ ] Think about how to do alignment snapping
+# Technical Details
+- Add `data-block-shortcuts="true"` to an element to prevent active shortcuts from triggering while it is focused. input elements have this by default, but you can disable it by setting their `data-block-shortcuts` attribute to `false`.

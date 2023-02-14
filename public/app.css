@@ -12,6 +12,7 @@
 	--bg-01: #2C2C2C;
 	--bg-02: #444444;
 	--bg-alt: #111111;
+	--border-00: #262626;
 
 	--text-00: #FFFFFF;
 
@@ -31,6 +32,16 @@ body {
 	display: grid;
 	grid-template-columns: 25rem 1fr 25rem;
 	grid-template-rows: 5rem 1fr;
+}
+
+input {
+	background-color: var(--bg-00);
+	border: solid 1px var(--bg-02);
+	padding: .5rem;
+	border-radius: .3rem;
+	color-scheme: dark light;
+	accent-color: var(--accent-00);
+	margin-block: 1rem;
 }
 
 button {

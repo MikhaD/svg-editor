@@ -8,10 +8,3 @@
 <label for={id}>
 	<slot />
 </label>
-
-<style>
-	input {
-		color-scheme: dark light;
-		accent-color: var(--accent-00);
-	}
-</style>

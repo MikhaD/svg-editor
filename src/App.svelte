@@ -2,8 +2,10 @@
 	import { FSM, state } from "./states";
 	import Sidebar from "./lib/Sidebar.svelte";
 	import Checkbox from "./lib/Checkbox.svelte";
-	import { Point, roundToNearest, Shortcut } from "./utils";
+	import { roundToNearest, Shortcut } from "./utils";
+	import { Point } from "./path";
 	import Toolbar from "./lib/Toolbar.svelte";
+	import KeyboardShortcut from "./lib/KeyboardShortcut.svelte";
 
 	let canvasHeight = 0;
 	let canvasWidth = 0;
@@ -11,7 +13,7 @@
 
 	let gridSize = 50;
 	// Increasing denominator increases snap precision (2 = corners, 4 = corners & midpoints etc.)
-	let inc = gridSize / 2;
+	$: inc = gridSize / 4;
 
 	let pointerX = 0;
 	let pointerY = 0;
@@ -19,6 +21,10 @@
 	const shortcuts = [
 		new Shortcut("v", () => FSM.transition("move")),
 		new Shortcut("p", () => FSM.transition("draw")),
+		new Shortcut("ctrl+z", () => {
+			points.pop();
+			points = points;
+		}),
 	];
 
 	function onMouseMove(e: MouseEvent & { currentTarget: EventTarget & HTMLElement }) {
@@ -48,13 +54,19 @@
 	}
 
 	function onKeyPress(e: KeyboardEvent) {
+		const active: HTMLElement = document.activeElement as HTMLElement;
+		if (
+			(active instanceof HTMLInputElement && active.dataset.blockShortcuts !== "false") ||
+			active?.dataset?.blockShortcuts === "true"
+		) {
+			if (e.currentTarget === document.activeElement) {
+				$state.onKeyPress(e);
+			}
+			return;
+		}
 		$state.onKeyPress(e);
 		for (const shortcut of shortcuts) {
 			shortcut.try(e);
-		}
-		if (e.key.toLowerCase() === "z" && e.ctrlKey) {
-			points.pop();
-			points = points;
 		}
 	}
 </script>
@@ -92,17 +104,26 @@
 				stroke-width="1"
 			/>
 		{/if}
-		{#each points as point}
-			<circle cx={point.x} cy={point.y} r="5" class="point" stroke="white" stroke-width="2" />
+		{#each points as point, i}
+			<circle
+				cx={point.x}
+				cy={point.y}
+				r={i === points.length - 1 ? 5 : 3.5}
+				class="point"
+				class:last={i === points.length - 1}
+			/>
 		{/each}
-		<circle cx={pointerX} cy={pointerY} r="3" fill="white" class="preview" />
+		<circle cx={pointerX} cy={pointerY} r="3.5" class="point" />
 	</svg>
 </main>
 <Sidebar>
 	<Checkbox bind:checked={snapToGrid}>Snap to grid</Checkbox>
+	<input type="text" inputmode="numeric" bind:value={gridSize} />
+	<KeyboardShortcut shortcut={new Shortcut("Ctrl+Alt+N", () => {})} />
+	<KeyboardShortcut shortcut={new Shortcut("ctrl+alt+del", () => {})} />
 </Sidebar>
 
-<style>
+<style lang="scss">
 	#debug {
 		position: absolute;
 		z-index: 100;
@@ -123,10 +144,13 @@
 		background-size: var(--grid-size);
 	}
 	.point {
-		fill: var(--accent-00);
-	}
-	.preview {
 		stroke: var(--accent-00);
+		fill: white;
+		&.last {
+			fill: var(--accent-00);
+			stroke: white;
+			stroke-width: 2;
+		}
 	}
 	.selection {
 		stroke: var(--accent-00);
