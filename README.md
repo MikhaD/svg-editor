@@ -7,3 +7,4 @@ I would also like to support some useful svg functionality not supported by figm
 - If this works out I may want to consider moving as much of the logic into Rust WASM as possible
 # Technical Details
 - Add `data-block-shortcuts="true"` to an element to prevent active shortcuts from triggering while it is focused. input elements have this by default, but you can disable it by setting their `data-block-shortcuts` attribute to `false`.
+- A keyboard shortcut's keys are specified in a combo string for ease of use. Use the `default_combo` property to set the combo.

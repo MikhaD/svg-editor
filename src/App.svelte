@@ -5,7 +5,7 @@
 	import { roundToNearest, Shortcut } from "./utils";
 	import { Point } from "./path";
 	import Toolbar from "./lib/Toolbar.svelte";
-	import KeyboardShortcut from "./lib/KeyboardShortcut.svelte";
+	import Shortcuts from "./lib/Shortcuts.svelte";
 
 	let canvasHeight = 0;
 	let canvasWidth = 0;
@@ -18,12 +18,26 @@
 	let pointerX = 0;
 	let pointerY = 0;
 	let points = [];
+
 	const shortcuts = [
-		new Shortcut("v", () => FSM.transition("move")),
-		new Shortcut("p", () => FSM.transition("draw")),
-		new Shortcut("ctrl+z", () => {
-			points.pop();
-			points = points;
+		new Shortcut({
+			default_combo: "v",
+			combo: "shift + alt + y",
+			description: "Move mode",
+			callback: () => FSM.transition("move"),
+		}),
+		new Shortcut({
+			default_combo: "p",
+			description: "Draw mode",
+			callback: () => FSM.transition("draw"),
+		}),
+		new Shortcut({
+			default_combo: "ctrl+z",
+			description: "Undo",
+			callback: () => {
+				points.pop();
+				points = points;
+			},
 		}),
 	];
 
@@ -72,10 +86,6 @@
 </script>
 
 <svelte:body on:keydown={onKeyPress} />
-<div id="debug">
-	<div>X: {pointerX}</div>
-	<div>Y: {pointerY}</div>
-</div>
 
 <Toolbar />
 <Sidebar />
@@ -119,23 +129,13 @@
 <Sidebar>
 	<Checkbox bind:checked={snapToGrid}>Snap to grid</Checkbox>
 	<input type="text" inputmode="numeric" bind:value={gridSize} />
-	<KeyboardShortcut shortcut={new Shortcut("Ctrl+Alt+N", () => {})} />
-	<KeyboardShortcut shortcut={new Shortcut("ctrl+alt+del", () => {})} />
 </Sidebar>
+<Shortcuts />
 
 <style lang="scss">
-	#debug {
-		position: absolute;
-		z-index: 100;
-		right: 0;
-		bottom: 0;
-		width: 10rem;
-		background-color: var(--bg-00);
-		padding: 1rem;
-	}
 	svg {
 		position: absolute;
-		z-index: 100;
+		z-index: 10;
 		cursor: var(--cursor-0), var(--cursor-1), auto;
 	}
 	main {
