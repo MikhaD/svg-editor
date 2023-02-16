@@ -29,7 +29,6 @@
 		padding: 1rem;
 		right: 2rem;
 		bottom: 2rem;
-		cursor: pointer;
 		background-color: var(--bg-00);
 	}
 	svg {

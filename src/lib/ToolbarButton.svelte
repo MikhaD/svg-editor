@@ -8,7 +8,7 @@
 	}
 </script>
 
-<button class="toolbar-button" on:click={setState} class:active>
+<button class="toolbar-button" on:mousedown={setState} class:active>
 	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" height="24" fill="none">
 		<path fill-rule="evenodd" d={thisState.icon} />
 	</svg>
@@ -20,7 +20,6 @@
 		aspect-ratio: 1;
 		display: grid;
 		place-items: center;
-		cursor: pointer;
 		&:not(.active):hover {
 			background-color: var(--bg-alt);
 		}

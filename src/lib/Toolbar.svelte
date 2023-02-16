@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { FSM, State } from "../states";
+	import Logo from "./Logo.svelte";
 	import ToolbarButton from "./ToolbarButton.svelte";
 </script>
 
 <div class="toolbar">
+	<Logo />
 	{#each Object.values(FSM.states) as state}
 		<ToolbarButton thisState={state} />
 	{/each}

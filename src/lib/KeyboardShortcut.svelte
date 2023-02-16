@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { Shortcut } from "../utils";
+	import { Shortcut } from "../utils";
 	import Key from "./Key.svelte";
 
-	export let shortcut: Shortcut;
+	export let shortcut: Shortcut | KeypressData;
 </script>
 
 <div class="shortcut">
@@ -15,7 +15,9 @@
 	{#if shortcut.shift}
 		<Key key="Shift" />
 	{/if}
-	<Key key={shortcut.key} />
+	{#if shortcut.key}
+		<Key key={Shortcut.IRREGULAR_KEYS[shortcut.key] ?? shortcut.key} />
+	{/if}
 </div>
 
 <style>

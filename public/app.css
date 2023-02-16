@@ -16,7 +16,8 @@
 	--border-01: #363636;
 
 	--text-00: #FFFFFF;
-	--text-00: #D0D0D0;
+	--text-01: #D0D0D0;
+	--text-02: #888888;
 
 	--accent-00: #0D99FF;
 	--accent-01: #2b85e8;
@@ -48,4 +49,5 @@ input {
 
 button {
 	all: initial;
+	cursor: pointer;
 }

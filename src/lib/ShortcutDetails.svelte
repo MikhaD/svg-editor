@@ -19,15 +19,19 @@
 
 <div class="shortcut">
 	<span>{shortcut.description}</span>
-	<span class="keys"><KeyboardShortcut {shortcut} /></span>
+	{#key setting_shortcut}
+		<span class="keys"><KeyboardShortcut {shortcut} /></span>
+	{/key}
 	<span class="options">
-		{#if shortcut.default_combo !== shortcut.combo}
-			<button on:click={reset}>
-				<svg class="reset" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-					<path d="M5 12A12 12 0 1 1 5 20M5 12l0-4l3.3 2.2z" />
-				</svg>
-			</button>
-		{/if}
+		{#key setting_shortcut}
+			{#if shortcut.default_combo !== shortcut.combo}
+				<button on:click={reset}>
+					<svg class="reset" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+						<path d="M5 12A12 12 0 1 1 5 20M5 12l0-4l3.3 2.2z" />
+					</svg>
+				</button>
+			{/if}
+		{/key}
 		<button on:click={setShortcut}>
 			<svg class="edit" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
 				<path
@@ -38,7 +42,7 @@
 	</span>
 </div>
 
-<Modal bind:open={setting_shortcut}>
+<Modal bind:open={setting_shortcut} --modal-width="40vw">
 	<SetShortcut {shortcut} />
 </Modal>
 
@@ -57,7 +61,6 @@
 	}
 	.shortcut {
 		display: grid;
-		gap: 1rem;
 		grid-template-columns: 6fr 2fr min-content;
 		padding-block: 1rem;
 		border-bottom: 1px solid var(--border-01);
@@ -72,7 +75,8 @@
 	}
 	.options {
 		display: flex;
-		gap: 1rem;
+		gap: 0.5rem;
 		justify-content: end;
+		margin-left: 1rem;
 	}
 </style>

@@ -35,6 +35,10 @@ export function isUpper(c: string) {
 	return true;
 }
 
+export function toTitleCase(str: string) {
+	return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
+}
+
 /**
  * Round a number to the nearest multiple of another number
  * @param num - The number to round
@@ -99,13 +103,6 @@ export class LinkedList<T> {
 	}
 }
 
-interface KeypressData {
-	key: string;
-	ctrl: boolean;
-	shift: boolean;
-	alt: boolean;
-}
-
 interface ShortcutData {
 	/** The default key combo for this action in the format "Ctrl+Shift+Alt+key". */
 	default_combo: string;
@@ -129,6 +126,10 @@ export class Shortcut {
 		"OS": "windows",
 		"Escape": "esc",
 		"Delete": "del",
+		"ArrowUp": "⇧",
+		"ArrowRight": "⇨",
+		"ArrowDown": "⇩",
+		"ArrowLeft": "⇦",
 	};
 	static readonly SHORTCUTS = new Map<string, Shortcut>();
 	/** The key part of the keyboard shortcut (eg: in `Ctrl+Alt+Del` the key is `Del`) */
@@ -148,9 +149,10 @@ export class Shortcut {
 	callback: (arg0: KeyboardEvent) => void;
 
 	constructor(data: ShortcutData) {
-		this.setShortcut(data.combo ?? data.default_combo);
-		this.default_combo = Shortcut.format(data.default_combo);
-		this.combo = Shortcut.format(data.combo ?? data.default_combo);
+		const parsed = Shortcut.parse(data.combo ?? data.default_combo);
+		this.setShortcut(parsed);
+		this.default_combo = Shortcut.toString(Shortcut.parse(data.default_combo));
+		this.combo = Shortcut.toString(parsed);
 		this.description = data.description;
 		this.caseFold = data.caseFold ?? true;
 		this.callback = data.callback;
@@ -160,9 +162,9 @@ export class Shortcut {
 	 * Convert a string in the format `"\s*ctrl\s*+\s*shift\s*+\s*alt\s*+\s*key\s*"` to a ShortcutData object
 	 * @param shortcut A string in the format "Ctrl+Shift+Alt+key"
 	 */
-	static parseShortcut(shortcut: string): KeypressData {
+	static parse(shortcut: string): KeypressData {
 		const data: KeypressData = {
-			key: "",
+			key: null,
 			ctrl: false,
 			shift: false,
 			alt: false,
@@ -184,22 +186,23 @@ export class Shortcut {
 					break;
 			}
 		}
+		if (data.shift && data.key === "") data.key = "+";
 		return data;
 	}
 	/**
 	 * Set the shortcut to a new key combination
-	 * @param shortcut A string in the format "ctrl+shift+alt+key"
+	 * @param shortcut A KeypressData object
 	 */
-	setShortcut(shortcut: string) {
-		const data = Shortcut.parseShortcut(shortcut);
+	setShortcut(data: KeypressData) {
 		this.key = data.key;
 		this.ctrl = data.ctrl;
 		this.shift = data.shift;
 		this.alt = data.alt;
+		this.combo = Shortcut.toString(data);
 	}
 	/** Reset the shortcut to the default key combination */
 	reset() {
-		this.setShortcut(this.default_combo);
+		this.setShortcut(Shortcut.parse(this.default_combo));
 		this.combo = this.default_combo;
 	}
 	/**
@@ -230,10 +233,9 @@ export class Shortcut {
 			this.callback(e);
 		}
 	}
-	/** Convert a string in the format `"\s*ctrl\s*+\s*shift\s*+\s*alt\s*+\s*key\s*"` to a string in the format "Ctrl+Shift+Alt+key" */
-	static format(shortcut: string) {
-		const data = Shortcut.parseShortcut(shortcut);
-		return `${data.ctrl ? "Ctrl+" : ""}${data.shift ? "Shift+" : ""}${data.alt ? "Alt+" : ""}${data.key.toUpperCase()}`;
+	/** Convert a KeypressData object into a string in the format "Ctrl+Shift+Alt+key" */
+	static toString(data: KeypressData) {
+		return `${data.ctrl ? "Ctrl+" : ""}${data.shift ? "Shift+" : ""}${data.alt ? "Alt+" : ""}${toTitleCase(Shortcut.IRREGULAR_KEYS[data.key] ?? data.key)}`;
 	}
 	toString(): string {
 		return this.combo;

@@ -1,4 +1,4 @@
-import { isAlpha, isNumeric, isUpper, roundToNearest } from "../utils";
+import { isAlpha, isNumeric, isUpper, roundToNearest, toTitleCase } from "../utils";
 import { describe, expect, it } from "vitest";
 
 describe("isAlpha", () => {
@@ -105,5 +105,15 @@ describe("roundToNearest", () => {
 		expect(roundToNearest(133, 50)).toBe(150);
 		expect(roundToNearest(174, 50)).toBe(150);
 		expect(roundToNearest(176, 50)).toBe(200);
+	});
+});
+
+describe("toTitleCase", () => {
+	it("Should make the string title case", () => {
+		expect(toTitleCase("hello there")).toBe("Hello There");
+		expect(toTitleCase("Hello There")).toBe("Hello There");
+		expect(toTitleCase("hi!")).toBe("Hi!");
+		expect(toTitleCase("M10 10")).toBe("M10 10");
+		expect(toTitleCase("CTRL+ALT+SPACE")).toBe("Ctrl+Alt+Space");
 	});
 });
