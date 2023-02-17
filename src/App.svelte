@@ -103,7 +103,6 @@
 		viewBox="0 0 {canvasWidth} {canvasHeight}"
 		fill="none"
 		style:--cursor-0="url('cursor/svg/{$state.name}.svg')"
-		style:--cursor-1="url('cursor/png/{$state.name}.png')"
 		on:mousedown={onMouseDown}
 		on:mouseup={onMouseUp}
 	>
@@ -138,7 +137,7 @@
 	svg {
 		position: absolute;
 		z-index: 10;
-		cursor: var(--cursor-0), var(--cursor-1), auto;
+		cursor: var(--cursor-0), auto;
 	}
 	main {
 		position: relative;
