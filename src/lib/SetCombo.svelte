@@ -15,18 +15,13 @@
 </script>
 
 <script lang="ts">
-	import { Shortcut } from "../utils";
+	import { KeyCombo, Shortcut } from "../utils";
 	import Checkbox from "./Checkbox.svelte";
 	import Key from "./Key.svelte";
-	import KeyboardShortcut from "./KeyboardShortcut.svelte";
+	import KeyCombination from "./KeyCombination.svelte";
 
 	export let shortcut: Shortcut;
-	const combo: KeypressData = {
-		ctrl: false,
-		shift: false,
-		alt: false,
-		key: "",
-	};
+	let combo = new KeyCombo();
 
 	function onKeydown(e: KeyboardEvent) {
 		if (e.key !== "Enter" && e.key !== "Escape") {
@@ -34,35 +29,33 @@
 		} else {
 			return;
 		}
-		combo.ctrl = e.ctrlKey;
-		combo.shift = e.shiftKey;
-		combo.alt = e.altKey;
-		combo.key = VALID_KEYS.has(e.key.toLowerCase()) ? e.key : "";
+		combo = new KeyCombo(
+			VALID_KEYS.has(e.key.toLowerCase()) ? e.key : "",
+			e.ctrlKey,
+			e.shiftKey,
+			e.altKey
+		);
 		// todo check that shortcut is not already in use
 	}
 
 	function onSubmit(e: Event) {
 		// todo check that shortcut is valid (add logic to shortcut parser that throws errors if invalid)
-		console.log(combo);
-		shortcut.setShortcut(combo);
-		combo.key = "";
-		combo.ctrl = false;
-		combo.shift = false;
-		combo.alt = false;
+		shortcut.setCombo(combo);
+		combo = new KeyCombo();
 	}
 </script>
 
 <div class="set-shortcut">
 	<div>Press the desired key combination, then press <Key key="Enter" /></div>
 	<div class="freeze">
-		<Checkbox>Shortcuts contains <Key key="Enter" /> and / or <Key key="Esc" /></Checkbox>
+		<Checkbox>Shortcut contains <Key key="Enter" /> and / or <Key key="Esc" /></Checkbox>
 	</div>
 	<form on:submit={onSubmit} method="dialog">
 		<!-- svelte-ignore a11y-autofocus -->
-		<input type="text" value={Shortcut.toString(combo)} on:keydown={onKeydown} autofocus />
+		<input type="text" value={combo.toString()} on:keydown={onKeydown} autofocus />
 	</form>
 	<div class="display">
-		<KeyboardShortcut shortcut={combo} />
+		<KeyCombination {combo} />
 	</div>
 </div>
 
@@ -73,9 +66,10 @@
 	input {
 		display: inline-block;
 		text-align: center;
-		width: 60%;
+		width: 80%;
 		margin-top: 2rem;
 		text-transform: capitalize;
+		background-color: var(--bg-alt);
 	}
 	.display {
 		height: 2.5rem;

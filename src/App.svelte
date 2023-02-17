@@ -6,6 +6,7 @@
 	import { Point } from "./path";
 	import Toolbar from "./lib/Toolbar.svelte";
 	import Shortcuts from "./lib/Shortcuts.svelte";
+	import Testing from "./lib/Testing.svelte";
 
 	let canvasHeight = 0;
 	let canvasWidth = 0;
@@ -87,6 +88,7 @@
 
 <svelte:body on:keydown={onKeyPress} />
 
+<Testing />
 <Toolbar />
 <Sidebar />
 <main

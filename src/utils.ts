@@ -1,5 +1,3 @@
-import KeyboardShortcut from "./lib/KeyboardShortcut.svelte";
-
 /**
  * Return true if all the characters are letters
  * @param c A string to check
@@ -103,23 +101,8 @@ export class LinkedList<T> {
 	}
 }
 
-interface ShortcutData {
-	/** The default key combo for this action in the format "Ctrl+Shift+Alt+key". */
-	default_combo: string;
-	/** A description of the action that occurs when this shortcut is triggered */
-	description: string;
-	/** The callback function to call when this shortcut is triggered */
-	callback: (arg0: KeyboardEvent) => void;
-	/** Set to `false` to take capitalization into account (`true` by default) */
-	caseFold?: boolean;
-	/** The key combo for this action in the format "Ctrl+Shift+Alt+key". Will default to `default_combo` if not set */
-	combo?: string;
-}
-
-/**
- * A class to represent a keyboard shortcut
- */
-export class Shortcut {
+/** A class to represent a keyboard combination */
+export class KeyCombo {
 	static readonly IRREGULAR_KEYS = {
 		" ": "space",
 		"Control": "ctrl",
@@ -131,113 +114,139 @@ export class Shortcut {
 		"ArrowDown": "⇩",
 		"ArrowLeft": "⇦",
 	};
-	static readonly SHORTCUTS = new Map<string, Shortcut>();
 	/** The key part of the keyboard shortcut (eg: in `Ctrl+Alt+Del` the key is `Del`) */
-	key: string;
+	key?: string;
 	ctrl: boolean;
 	shift: boolean;
 	alt: boolean;
-	/** Set to `false` to take capitalization into account (`true` by default) */
-	caseFold: boolean;
+	constructor();
+	constructor(key: string);
+	constructor(key: string, ctrl: boolean, shift: boolean, alt: boolean);
+	constructor(key?: string, ctrl?: boolean, shift?: boolean, alt?: boolean) {
+		if (arguments.length === 1) {
+			this.parse(key);
+		} else {
+			this.key = key ?? "";
+			this.ctrl = ctrl ?? false;
+			this.shift = shift ?? false;
+			this.alt = alt ?? false;
+		}
+	}
+
+	/**
+	 * Parse a string in the format  `"\s*ctrl\s*+\s*shift\s*+\s*alt\s*+\s*key\s*"` and set this KeyCombo's properties to match
+	 * @param str The string to parse
+	 */
+	parse(str: string): void {
+		let key = null;
+		this.alt = false;
+		this.ctrl = false;
+		this.shift = false;
+		const parts = str.trim().toLowerCase().split(/\s*\+\s*/);
+		for (const part of parts) {
+			switch (part) {
+				case "ctrl":
+					this.ctrl = true;
+					break;
+				case "shift":
+					this.shift = true;
+					break;
+				case "alt":
+					this.alt = true;
+					break;
+				default:
+					key = part;
+					break;
+			}
+		}
+		this.key = this.shift && key === "" ? "+" : key;
+	}
+
+	/**
+	 * Return true if this KeyCombo is equal to another
+	 * @param other The KeyCombo to compare to
+	 */
+	equals(other: KeyCombo): boolean {
+		return this.toString() == other.toString();
+	}
+
+	/**
+ * Check if the event matches this combo
+ * @param e The event to check
+ * @returns True if the event matches this combo
+ */
+	matches(e: KeyboardEvent): boolean {
+		const key = KeyCombo.IRREGULAR_KEYS[e.key.toLowerCase()] ?? e.key.toLowerCase();
+		return this.key == key && this.ctrl == e.ctrlKey && this.shift == e.shiftKey && this.alt == e.altKey;
+	}
+
+	/** Return a representation of the KeyCombo as a string in the format "Ctrl+Shift+Alt+key" */
+	toString(): string {
+		return `${this.ctrl ? "Ctrl+" : ""}${this.shift ? "Shift+" : ""}${this.alt ? "Alt+" : ""}${toTitleCase(KeyCombo.IRREGULAR_KEYS[this.key] ?? this.key)}`;
+	}
+
+	/** Return a copy of this KeyCombo */
+	copy(): KeyCombo {
+		return new KeyCombo(this.key, this.ctrl, this.shift, this.alt);
+	}
+}
+
+interface ShortcutData {
+	/** The default key combo for this action in the format "Ctrl+Shift+Alt+key". */
+	default_combo: string;
+	/** A description of the action that occurs when this shortcut is triggered */
+	description: string;
+	/** The callback function to call when this shortcut is triggered */
+	callback: (arg0: KeyboardEvent) => void;
+	/** The key combo for this action in the format "Ctrl+Shift+Alt+key". Will default to `default_combo` if not set */
+	combo?: string;
+}
+
+/** A class to represent a keyboard shortcut */
+export class Shortcut {
+	static readonly SHORTCUTS = new Map<string, Shortcut>();
 	/** A description of the action that occurs when this shortcut is triggered */
 	description: string;
 	/** The key combo for this action as a string in the format "Ctrl+Shift+Alt+key" */
-	combo: string;
+	combo: KeyCombo;
 	/** The default key combo for this action as a string in the format "Ctrl+Shift+Alt+key" */
-	default_combo: string;
+	default_combo: KeyCombo;
 	/** The callback function to call when this shortcut is triggered */
 	callback: (arg0: KeyboardEvent) => void;
 
 	constructor(data: ShortcutData) {
-		const parsed = Shortcut.parse(data.combo ?? data.default_combo);
-		this.setShortcut(parsed);
-		this.default_combo = Shortcut.toString(Shortcut.parse(data.default_combo));
-		this.combo = Shortcut.toString(parsed);
+		this.combo = new KeyCombo(data.combo ?? data.default_combo);
+		this.default_combo = new KeyCombo(data.default_combo);
 		this.description = data.description;
-		this.caseFold = data.caseFold ?? true;
 		this.callback = data.callback;
+
 		Shortcut.SHORTCUTS.set(this.toString(), this);
-	}
-	/**
-	 * Convert a string in the format `"\s*ctrl\s*+\s*shift\s*+\s*alt\s*+\s*key\s*"` to a ShortcutData object
-	 * @param shortcut A string in the format "Ctrl+Shift+Alt+key"
-	 */
-	static parse(shortcut: string): KeypressData {
-		const data: KeypressData = {
-			key: null,
-			ctrl: false,
-			shift: false,
-			alt: false,
-		};
-		const parts = shortcut.trim().toLowerCase().split(/\s*\+\s*/);
-		for (const part of parts) {
-			switch (part) {
-				case "ctrl":
-					data.ctrl = true;
-					break;
-				case "shift":
-					data.shift = true;
-					break;
-				case "alt":
-					data.alt = true;
-					break;
-				default:
-					data.key = part;
-					break;
-			}
-		}
-		if (data.shift && data.key === "") data.key = "+";
-		return data;
 	}
 	/**
 	 * Set the shortcut to a new key combination
 	 * @param shortcut A KeypressData object
 	 */
-	setShortcut(data: KeypressData) {
-		this.key = data.key;
-		this.ctrl = data.ctrl;
-		this.shift = data.shift;
-		this.alt = data.alt;
-		this.combo = Shortcut.toString(data);
+	setCombo(combo: KeyCombo) {
+		this.combo = combo;
 	}
 	/** Reset the shortcut to the default key combination */
 	reset() {
-		this.setShortcut(Shortcut.parse(this.default_combo));
-		this.combo = this.default_combo;
+		this.setCombo(this.default_combo);
 	}
 	/**
-	 * Check if the event matches this shortcut
-	 * @param e The event to check
-	 * @returns True if the event matches this shortcut
-	 */
-	matches(e: KeyboardEvent) {
-		const key = Shortcut.IRREGULAR_KEYS[e.key] ?? e.key;
-		if (this.caseFold) {
-			return this.key.toLowerCase() === key.toLowerCase() &&
-				this.ctrl === e.ctrlKey &&
-				this.shift === e.shiftKey &&
-				this.alt === e.altKey;
-		} else {
-			return this.key === key &&
-				this.ctrl === e.ctrlKey &&
-				this.shift === e.shiftKey &&
-				this.alt === e.altKey;
-		}
-	}
-	/**
-	 * Try to match the event to this shortcut. If it matches, call the callback.
+	 * Try to match the event to this shortcut. If it matches, call the callback and return true, else return false.
 	 * @param e The event to try to match
 	*/
-	try(e: KeyboardEvent) {
-		if (this.matches(e)) {
+	try(e: KeyboardEvent): boolean {
+		if (this.combo.matches(e)) {
+			console.log(this.combo.toString());
 			this.callback(e);
+			return true;
 		}
+		return false;
 	}
-	/** Convert a KeypressData object into a string in the format "Ctrl+Shift+Alt+key" */
-	static toString(data: KeypressData) {
-		return `${data.ctrl ? "Ctrl+" : ""}${data.shift ? "Shift+" : ""}${data.alt ? "Alt+" : ""}${toTitleCase(Shortcut.IRREGULAR_KEYS[data.key] ?? data.key)}`;
-	}
+
 	toString(): string {
-		return this.combo;
+		return this.combo.toString();
 	}
 }

@@ -1,22 +1,22 @@
 <script lang="ts">
-	import { Shortcut } from "../utils";
+	import { KeyCombo } from "../utils";
 	import Key from "./Key.svelte";
 
-	export let shortcut: Shortcut | KeypressData;
+	export let combo: KeyCombo;
 </script>
 
 <div class="shortcut">
-	{#if shortcut.ctrl}
+	{#if combo.ctrl}
 		<Key key="Ctrl" />
 	{/if}
-	{#if shortcut.alt}
+	{#if combo.alt}
 		<Key key="Alt" />
 	{/if}
-	{#if shortcut.shift}
+	{#if combo.shift}
 		<Key key="Shift" />
 	{/if}
-	{#if shortcut.key}
-		<Key key={Shortcut.IRREGULAR_KEYS[shortcut.key] ?? shortcut.key} />
+	{#if combo.key}
+		<Key key={KeyCombo.IRREGULAR_KEYS[combo.key] ?? combo.key} />
 	{/if}
 </div>
 

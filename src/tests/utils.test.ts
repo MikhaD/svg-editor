@@ -114,6 +114,6 @@ describe("toTitleCase", () => {
 		expect(toTitleCase("Hello There")).toBe("Hello There");
 		expect(toTitleCase("hi!")).toBe("Hi!");
 		expect(toTitleCase("M10 10")).toBe("M10 10");
-		expect(toTitleCase("CTRL+ALT+SPACE")).toBe("Ctrl+Alt+Space");
+		expect(toTitleCase("CTRL + ALT + SPACE")).toBe("Ctrl + Alt + Space");
 	});
 });

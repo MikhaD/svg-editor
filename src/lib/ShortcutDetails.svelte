@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Shortcut } from "../utils";
-	import KeyboardShortcut from "./KeyboardShortcut.svelte";
+	import KeyCombination from "./KeyCombination.svelte";
 	import Modal from "./Modal.svelte";
-	import SetShortcut from "./SetShortcut.svelte";
+	import SetCombo from "./SetCombo.svelte";
 	export let shortcut: Shortcut;
 
 	let setting_shortcut = false;
@@ -20,11 +20,11 @@
 <div class="shortcut">
 	<span>{shortcut.description}</span>
 	{#key setting_shortcut}
-		<span class="keys"><KeyboardShortcut {shortcut} /></span>
+		<span class="keys"><KeyCombination combo={shortcut.combo} /></span>
 	{/key}
 	<span class="options">
 		{#key setting_shortcut}
-			{#if shortcut.default_combo !== shortcut.combo}
+			{#if !shortcut.default_combo.equals(shortcut.combo)}
 				<button on:click={reset}>
 					<svg class="reset" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
 						<path d="M5 12A12 12 0 1 1 5 20M5 12l0-4l3.3 2.2z" />
@@ -43,7 +43,7 @@
 </div>
 
 <Modal bind:open={setting_shortcut} --modal-width="40vw">
-	<SetShortcut {shortcut} />
+	<SetCombo {shortcut} />
 </Modal>
 
 <style lang="scss">
