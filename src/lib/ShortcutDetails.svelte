@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Shortcut } from "../utils";
+	import type { Shortcut } from "../shortcut";
 	import KeyCombination from "./KeyCombination.svelte";
 	import Modal from "./Modal.svelte";
 	import SetCombo from "./SetCombo.svelte";
@@ -25,25 +25,35 @@
 	<span class="options">
 		{#key setting_shortcut}
 			{#if !shortcut.default_combo.equals(shortcut.combo)}
-				<button on:click={reset}>
-					<svg class="reset" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-						<path d="M5 12A12 12 0 1 1 5 20M5 12l0-4l3.3 2.2z" />
-					</svg>
-				</button>
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<svg
+					class="reset"
+					viewBox="0 0 32 32"
+					xmlns="http://www.w3.org/2000/svg"
+					on:click={reset}
+				>
+					<path d="M5 12A12 12 0 1 1 5 20M5 12l0-4l3.3 2.2z" />
+				</svg>
 			{/if}
 		{/key}
-		<button on:click={setShortcut}>
-			<svg class="edit" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-				<path
-					d="M188.873 16l4.226.377c11.952 1.065 23.058 7.183 31.312 15.438s14.373 19.361 15.439 31.313l.376 4.225-147.55 147.55-82.949 31.596 31.596-82.949L188.873 16zm6.545 19.131L61.954 168.596l25.676 25.676L221.095 60.808c-1.418-5.678-4.759-11.392-9.522-16.155s-10.477-8.103-16.155-9.522zM71.298 203.617l-18.69-18.689-11.499 30.188 30.189-11.499z"
-				/>
-			</svg>
-		</button>
+		<!-- svelte-ignore a11y-click-events-have-key-events -->
+		<svg
+			class="edit"
+			xmlns="http://www.w3.org/2000/svg"
+			viewBox="0 0 256 256"
+			on:click={setShortcut}
+		>
+			<path
+				d="M188.873 16l4.226.377c11.952 1.065 23.058 7.183 31.312 15.438s14.373 19.361 15.439 31.313l.376 4.225-147.55 147.55-82.949 31.596 31.596-82.949L188.873 16zm6.545 19.131L61.954 168.596l25.676 25.676L221.095 60.808c-1.418-5.678-4.759-11.392-9.522-16.155s-10.477-8.103-16.155-9.522zM71.298 203.617l-18.69-18.689-11.499 30.188 30.189-11.499z"
+			/>
+		</svg>
 	</span>
 </div>
 
 <Modal bind:open={setting_shortcut} --modal-width="40vw">
-	<SetCombo {shortcut} />
+	{#if setting_shortcut}
+		<SetCombo {shortcut} />
+	{/if}
 </Modal>
 
 <style lang="scss">
@@ -61,6 +71,7 @@
 	}
 	.shortcut {
 		display: grid;
+		align-items: center;
 		grid-template-columns: 6fr 2fr min-content;
 		padding-block: 1rem;
 		border-bottom: 1px solid var(--border-01);

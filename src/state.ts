@@ -6,7 +6,7 @@ interface States {
 type StateName = keyof States;
 
 import { writable } from "svelte/store";
-import { Shortcut } from "./utils";
+import { Shortcut } from "./shortcut";
 export const state = writable<State>();
 
 export class StateMachine {
@@ -56,22 +56,16 @@ export class Move extends State {
 		this.icon = "M82.816 238.634l52.651-79.545 90.268-24.504L37.917 21.049l44.9 217.585zm107.122-109.07L58.425 50.062l31.403 152.206 36.736-55.495 63.374-17.209z";
 	}
 	onStateEnter() {
-		console.log("Move state entered");
 	}
 	onStateExit() {
-		console.log("Move state exited");
 	}
 	onMouseDown(e: MouseEvent) {
-		console.log("Move state mouse down");
 	}
 	onMouseUp(e: MouseEvent) {
-		console.log("Move state mouse up");
 	}
 	onMouseMove(e: MouseEvent) {
-		console.log("Move state mouse move");
 	}
 	onKeyPress(e: KeyboardEvent) {
-		console.log("Move state key press");
 	}
 }
 
@@ -88,19 +82,14 @@ export class Draw extends State {
 		];
 	}
 	onStateEnter() {
-		console.log("Draw state entered");
 	}
 	onStateExit() {
-		console.log("Draw state exited");
 	}
 	onMouseDown(e: MouseEvent) {
-		console.log("Draw state mouse down");
 	}
 	onMouseUp(e: MouseEvent) {
-		console.log("Draw state mouse up");
 	}
 	onMouseMove(e: MouseEvent) {
-		console.log("Draw state mouse move");
 	}
 	onKeyPress(e: KeyboardEvent) {
 		for (let shortcut of this.shortcuts) {

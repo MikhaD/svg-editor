@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { UIDGenerator } from "../utils";
+
 	export let checked = false;
 
-	const id = Math.random().toString(36).slice(2);
+	const id = UIDGenerator.next();
 </script>
 
 <span>
@@ -12,9 +14,12 @@
 </span>
 
 <style>
+	input {
+		margin: 0;
+	}
 	span {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.25rem;
+		gap: 0.5rem;
 	}
 </style>

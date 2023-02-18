@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FSM, type State, state } from "../states";
+	import { FSM, type State, state } from "../state";
 	export let thisState: State;
 	$: active = thisState.name === $state.name;
 

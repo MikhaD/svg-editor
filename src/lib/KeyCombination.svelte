@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { KeyCombo } from "../utils";
+	import { KeyCombo } from "../shortcut";
 	import Key from "./Key.svelte";
 
 	export let combo: KeyCombo;

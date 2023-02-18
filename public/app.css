@@ -22,9 +22,12 @@
 	--accent-00: #0D99FF;
 	--accent-01: #2b85e8;
 
+	--red: #a32626;
+
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 	background-color: var(--bg-00);
 	color: var(--text-00);
+	color-scheme: dark;
 }
 
 body {
@@ -42,8 +45,9 @@ input {
 	border: solid 1px var(--bg-02);
 	padding: .5rem;
 	border-radius: .3rem;
-	color-scheme: dark light;
+	color: inherit;
 	accent-color: var(--accent-00);
+	outline: none;
 	margin-block: 1rem;
 }
 

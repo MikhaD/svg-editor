@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FSM, State } from "../states";
+	import { FSM, State } from "../state";
 	import Logo from "./Logo.svelte";
 	import ToolbarButton from "./ToolbarButton.svelte";
 </script>

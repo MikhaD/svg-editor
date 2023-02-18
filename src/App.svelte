@@ -1,12 +1,16 @@
 <script lang="ts">
-	import { FSM, state } from "./states";
+	import { FSM, state } from "./state";
 	import Sidebar from "./lib/Sidebar.svelte";
 	import Checkbox from "./lib/Checkbox.svelte";
-	import { roundToNearest, Shortcut } from "./utils";
+	import { roundToNearest } from "./utils";
+	import { Shortcut } from "./shortcut";
 	import { Point } from "./path";
 	import Toolbar from "./lib/Toolbar.svelte";
 	import Shortcuts from "./lib/Shortcuts.svelte";
 	import Testing from "./lib/Testing.svelte";
+
+	/** The directory to look for cursor svg files */
+	export let cursorDir: String;
 
 	let canvasHeight = 0;
 	let canvasWidth = 0;
@@ -23,13 +27,13 @@
 	const shortcuts = [
 		new Shortcut({
 			default_combo: "v",
-			combo: "shift + alt + y",
-			description: "Move mode",
+			combo: "m",
+			description: "Switch to Move mode",
 			callback: () => FSM.transition("move"),
 		}),
 		new Shortcut({
 			default_combo: "p",
-			description: "Draw mode",
+			description: "Switch to Draw mode",
 			callback: () => FSM.transition("draw"),
 		}),
 		new Shortcut({
@@ -102,7 +106,7 @@
 		xmlns="http://www.w3.org/2000/svg"
 		viewBox="0 0 {canvasWidth} {canvasHeight}"
 		fill="none"
-		style:--cursor-0="url('cursor/svg/{$state.name}.svg')"
+		style:--cursor-0="url('{cursorDir}/{$state.name}.svg')"
 		on:mousedown={onMouseDown}
 		on:mouseup={onMouseUp}
 	>

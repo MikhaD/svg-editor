@@ -10,6 +10,7 @@
 	function onKeydown(e: KeyboardEvent) {
 		e.preventDefault();
 		key = e.key;
+		console.log(e);
 	}
 </script>
 

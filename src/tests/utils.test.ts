@@ -1,4 +1,4 @@
-import { isAlpha, isNumeric, isUpper, roundToNearest, toTitleCase } from "../utils";
+import { isAlpha, isNumeric, isUpper, roundToNearest, toTitleCase, strip } from "../utils";
 import { describe, expect, it } from "vitest";
 
 describe("isAlpha", () => {
@@ -115,5 +115,20 @@ describe("toTitleCase", () => {
 		expect(toTitleCase("hi!")).toBe("Hi!");
 		expect(toTitleCase("M10 10")).toBe("M10 10");
 		expect(toTitleCase("CTRL + ALT + SPACE")).toBe("Ctrl + Alt + Space");
+	});
+});
+
+describe("strip", () => {
+	it("should remove whitespace from the start and end of a string", () => {
+		expect(strip(" Hello there ")).toBe("Hello there");
+		expect(strip("\t Hello there")).toBe("Hello there");
+		expect(strip("Hello there ")).toBe("Hello there");
+		expect(strip(" Hello there\n ")).toBe("Hello there");
+	});
+	it("should remove + and - characters from the start and end of a string", () => {
+		expect(strip("+Hello there+", /\+/)).toBe("Hello there");
+		expect(strip("-Hello there-", /\+/)).toBe("Hello there");
+		expect(strip("-+Hello there+-", /\+/)).toBe("Hello there");
+		expect(strip("++Hello there++", /(\+|-)/)).toBe("Hello there");
 	});
 });
