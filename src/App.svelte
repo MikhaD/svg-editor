@@ -6,7 +6,7 @@
 	import { Shortcut } from "./shortcut";
 	import { Point } from "./path";
 	import Toolbar from "./lib/Toolbar.svelte";
-	import Shortcuts from "./lib/Shortcuts.svelte";
+	import { Shortcuts } from "./lib/shortcut";
 	import Testing from "./lib/Testing.svelte";
 
 	/** The directory to look for cursor svg files */

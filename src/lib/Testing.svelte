@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Key from "./Key.svelte";
+	import { Key } from "./shortcut";
 	import Modal from "./Modal.svelte";
 
 	let modal = false;

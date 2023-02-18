@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { Shortcut } from "../shortcut";
+	import type { Shortcut } from "../../shortcut";
 	import KeyCombination from "./KeyCombination.svelte";
-	import Modal from "./Modal.svelte";
+	import Modal from "../Modal.svelte";
 	import SetCombo from "./SetCombo.svelte";
 	export let shortcut: Shortcut;
 

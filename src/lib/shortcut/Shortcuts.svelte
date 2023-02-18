@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Shortcut } from "../shortcut";
-	import Modal from "./Modal.svelte";
+	import { Shortcut } from "../../shortcut";
+	import Modal from "../Modal.svelte";
 	import ShortcutDetails from "./ShortcutDetails.svelte";
 
 	let open = false;
