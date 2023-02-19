@@ -4,7 +4,7 @@
 	import Checkbox from "./lib/Checkbox.svelte";
 	import { roundToNearest } from "./utils";
 	import { Shortcut } from "./shortcut";
-	import { Point } from "./path";
+	import { Path, Point } from "./path";
 	import Toolbar from "./lib/Toolbar.svelte";
 	import { Shortcuts } from "./lib/shortcut";
 	import Testing from "./lib/Testing.svelte";
@@ -88,6 +88,12 @@
 			shortcut.try(e);
 		}
 	}
+
+	console.log(
+		new Path(
+			"M20 20C30 10 40 10 50 20S70 30 80 20S100 10 110 20A50 40 50 11120 110Q110 90 100 110T80 110 60 110 40 110 20 90Z"
+		).toString("\n")
+	);
 </script>
 
 <svelte:body on:keydown={onKeyPress} />
@@ -103,7 +109,6 @@
 >
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<svg
-		xmlns="http://www.w3.org/2000/svg"
 		viewBox="0 0 {canvasWidth} {canvasHeight}"
 		fill="none"
 		style:--cursor-0="url('{cursorDir}/{$state.name}.svg')"

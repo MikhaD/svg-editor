@@ -24,7 +24,7 @@
 </Modal>
 
 <button on:click={() => (modal = true)}>
-	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+	<svg viewBox="0 0 256 256" fill="none">
 		<g fill="#5dd3e3">
 			<ellipse cx="120.812" cy="54.745" rx="9.836" ry="9.846" />
 			<ellipse cx="110.583" cy="172.111" rx="9.836" ry="9.846" />

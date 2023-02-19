@@ -58,7 +58,7 @@ export function randInt(min: number, max: number) {
 /**
  * Remove all occurrences of the given character(s) on either end of the string
  * @param str - The string to strip;
- * @param chars - The characters to strip off
+ * @param chars - The regular expression to match the characters to strip
  */
 export function strip(str: string, chars: RegExp = /\s/) {
 	return str.replace(new RegExp(`^${chars.source}+|${chars.source}+$`, "g"), "");
@@ -88,20 +88,29 @@ export class LinkedList<T> {
 	#head: Node<T> | null;
 	#tail: Node<T> | null;
 	#length: number;
-	constructor() {
+	constructor(iterable?: Iterable<T>) {
+		this.#head = null;
+		this.#tail = null;
 		this.#length = 0;
+		if (iterable) {
+			for (const item of iterable) {
+				this.push(item);
+			}
+		}
 	}
-
+	/**
+	 * Push a new value to the end of the list
+	 * @param data - The value to push
+	 */
 	push(data: T) {
-		console.log("value pushed");
 		const node = new Node(data, this.#tail);
 		if (this.#tail) this.#tail.next = node;
 		this.#tail = node;
 		if (!this.#head) this.#head = node;
 		++this.#length;
 	}
+	/** Remove the value at the end of the list and return it */
 	pop(): T | null {
-		console.log("value popped");
 		if (!this.#tail) return null;
 		const data = this.#tail.data;
 		this.#tail = this.#tail.prev;
@@ -110,10 +119,54 @@ export class LinkedList<T> {
 		--this.#length;
 		return data;
 	}
+	/** Remove the first element of the list and return it */
+	shift(): T | null {
+		if (!this.#head) return null;
+		const data = this.#head.data;
+		this.#head = this.#head.next;
+		if (this.#head) this.#head.prev = null;
+		else this.#tail = null;
+		--this.#length;
+		return data;
+	}
+	/** Return the element at the end of the list */
 	peak(): T | null {
 		return this.#tail?.data ?? null;
 	}
+	/** The number of items in the linked list */
 	get length() {
 		return this.#length;
 	}
+	[Symbol.iterator]() {
+		let current = this.#head;
+		return {
+			next: () => {
+				if (current) {
+					const value = current.data;
+					current = current.next;
+					return { value, done: false };
+				} else {
+					return { done: true };
+				}
+			},
+		};
+	}
+}
+
+/**
+ * Asserts that a value is a number and throws an error if it isn't
+ * @param num - The value to assert
+ */
+export function assertNumber(num: any): number {
+	if (!isNaN(num) && typeof num !== "number") throw new TypeError("Invalid number");
+	return num;
+}
+
+/**
+ * Asserts that a value is a string and throws an error if it isn't
+ * @param str - The value to assert
+ */
+export function assertString(str: any): string {
+	if (typeof str !== "string") throw new TypeError("Invalid string");
+	return str;
 }

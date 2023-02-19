@@ -18,12 +18,7 @@
 	data-block-shortcuts="true"
 	on:click|self={() => (open = false)}
 >
-	<svg
-		class="close"
-		viewBox="0 0 4 4"
-		xmlns="http://www.w3.org/2000/svg"
-		on:click={() => (open = false)}
-	>
+	<svg class="close" viewBox="0 0 4 4" on:click={() => (open = false)}>
 		<!-- <path d="M.5 .5L3.5 3.5M3.5 .5L.5 3.5" stroke-linecap="round" /> -->
 		<path d="M.35 .35L3.65 3.65M3.65 .35L.35 3.65" />
 	</svg>

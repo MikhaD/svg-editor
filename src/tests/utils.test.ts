@@ -127,8 +127,8 @@ describe("strip", () => {
 	});
 	it("should remove + and - characters from the start and end of a string", () => {
 		expect(strip("+Hello there+", /\+/)).toBe("Hello there");
-		expect(strip("-Hello there-", /\+/)).toBe("Hello there");
-		expect(strip("-+Hello there+-", /\+/)).toBe("Hello there");
+		expect(strip("-Hello there-", /-/)).toBe("Hello there");
+		expect(strip("+-+Hello there-+-", /\+|-/)).toBe("Hello there");
 		expect(strip("++Hello there++", /(\+|-)/)).toBe("Hello there");
 	});
 });
