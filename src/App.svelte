@@ -2,7 +2,7 @@
 	import { FSM, state } from "./state";
 	import Sidebar from "./lib/Sidebar.svelte";
 	import Checkbox from "./lib/Checkbox.svelte";
-	import { roundToNearest } from "./utils";
+	import { roundToNearest } from "./util";
 	import { Shortcut } from "./shortcut";
 	import { Path, Point } from "./path";
 	import Toolbar from "./lib/Toolbar.svelte";

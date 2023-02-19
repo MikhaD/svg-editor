@@ -1,4 +1,4 @@
-import { UIDGenerator, toTitleCase } from "./utils";
+import { UIDGenerator, toTitleCase } from "./util";
 
 /** A class to represent a keyboard combination */
 export class KeyCombo {

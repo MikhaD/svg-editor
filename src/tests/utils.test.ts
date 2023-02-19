@@ -1,4 +1,4 @@
-import { isAlpha, isNumeric, isUpper, roundToNearest, toTitleCase, strip } from "../utils";
+import { isAlpha, isNumeric, isUpper, roundToNearest, toTitleCase, strip } from "../util";
 import { describe, expect, it } from "vitest";
 
 describe("isAlpha", () => {

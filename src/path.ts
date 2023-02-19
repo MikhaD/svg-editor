@@ -1,4 +1,4 @@
-import { LinkedList, assertNumber, assertString } from "./utils";
+import { LinkedList, assertNumber, assertString } from "./util";
 
 /** An error that occurs when parsing an SVG path */
 export class SVGPathError extends Error {

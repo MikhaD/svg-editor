@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { KeyCombo, Shortcut } from "../../shortcut";
-	import { strip } from "../../utils";
+	import { strip } from "../../util";
 	import Checkbox from "../Checkbox.svelte";
 	import Key from "./Key.svelte";
 	import KeyCombination from "./KeyCombination.svelte";

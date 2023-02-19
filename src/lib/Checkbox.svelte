@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { UIDGenerator } from "../utils";
+	import { UIDGenerator } from "../util";
 
 	export let checked = false;
 
