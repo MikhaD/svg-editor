@@ -7,20 +7,19 @@ export class SVGPathError extends Error {
 	}
 }
 
-/** A class to represent an immutable point in 2D space */
+/** A class to represent a coordinate in an SVG path */
 export class Point {
+	/** (0, 0) */
 	static readonly ORIGIN = new Point(0, 0);
-	#x: number;
-	#y: number;
+	readonly #x: number;
+	readonly #y: number;
 	#control: boolean;
 	selected: boolean;
 	/**
-	 * @param x - The x coordinate
-	 * @param y - The y coordinate
 	 * @param control - Whether this point is a control point or not
 	 */
 	constructor(x: number, y: number, control: boolean = false) {
-		if (isNaN(x) || isNaN(y)) throw new SVGPathError("Invalid point");
+		if (isNaN(x) || isNaN(y)) throw new SVGPathError("Invalid coordinate");
 		this.#x = x;
 		this.#y = y;
 		this.#control = control;
@@ -30,106 +29,136 @@ export class Point {
 	get y() { return this.#y; }
 	get control() { return this.#control; }
 	/**
-	 * Return a new point that represent this point relative to another point instead of the origin
-	 * @param other - The point to make this point relative to (the new origin)
+	 * Create a new point that is relative to this point
+	 * @param coords - The coordinates to offset by
 	 */
 	relativeTo(other: Point) {
 		return new Point(this.x - other.x, this.y - other.y);
 	}
-	compact() {
-		return `${this.x}${this.y < 0 ? "" : ","}${this.y}`;
-	}
-	toString() {
-		return `${this.x},${this.y}`;
+	/**
+	 * Return the string representation of this point
+	 * @param compact - Whether to use compact form if possible
+	 */
+	toString(compact?: boolean) {
+		return `${this.#x}${compact && this.#y < 0 ? "" : ","}${this.#y}`;
 	}
 }
 
 abstract class PathSegment {
+	#next: PathSegment | null;
+	#prev: PathSegment | null;
 	dest: Point;
 	relative: boolean;
-	constructor(dest: Point, relative: boolean) {
+	constructor(parent: PathSegment, dest: Point, relative: boolean) {
+		this.#prev = parent;
+		this.#next = null;
+		if (parent) parent.#next = this;
 		this.dest = dest;
 		this.relative = relative;
 	}
-	formatOutput(output: string) {
-		return this.relative ? output.toLowerCase() : output.toUpperCase();
+	abstract asRelative(): string;
+	abstract asAbsolute(): string;
+
+	toString() {
+		return this.relative ? this.asRelative() : this.asAbsolute();
 	}
-	abstract relativeTo(other: PathSegment): PathSegment;
-	abstract toString(): string;
+	/**
+	 * Add a segment starting from this segment's destination, essentially inserting it into the path
+	 * @param child - The segment to add
+	 */
+	addChild(child: PathSegment) {
+		if (this.#next) {
+			this.#next.#prev = child;
+			child.#next = this.#next;
+		}
+		this.#next = child;
+		child.#prev = this;
+	}
+	asSegment() {
+		return `M${this.prev?.dest ?? Point.ORIGIN}${this.asAbsolute()}`;
+	}
+	static getAbsolutePoint(start: Point, x: number, y: number, relative: boolean, control: boolean = false) {
+		if (relative) return new Point(start.x + x, start.y + y, control);
+		return new Point(x, y, control);
+	}
+
+	get prev() { return this.#prev; }
+	get next() { return this.#next; }
 }
 
 class M extends PathSegment {
-	constructor(dest: Point, relative?: boolean) {
-		super(dest, relative);
+	constructor(parent: PathSegment, dest: Point, relative?: boolean) {
+		super(parent, dest, relative);
 	}
-	relativeTo(other: PathSegment) {
-		return new M(this.dest.relativeTo(other.dest), true);
+	asRelative() {
+		return `m${this.dest.relativeTo(this.prev?.dest ?? Point.ORIGIN)}`;
 	}
-	toString() {
-		return super.formatOutput(`M${this.dest}`);
+	asAbsolute() {
+		return `M${this.dest}`;
 	}
-	static from(path: LinkedList<string>, relative?: boolean): M {
+	static from(path: LinkedList<string>, parent?: PathSegment, relative?: boolean): M {
 		return new M(
-			new Point(+path.pop(), +path.pop()),
+			parent,
+			PathSegment.getAbsolutePoint(parent?.dest ?? Point.ORIGIN, +path.pop(), +path.pop(), relative),
 			relative,
 		);
 	}
 }
 
 class H extends PathSegment {
-	constructor(dest: Point, relative?: boolean) {
-		if (dest.y !== 0) throw new SVGPathError("Invalid point");
-		super(dest, relative);
+	constructor(parent: PathSegment, dest: Point, relative?: boolean) {
+		if (parent.dest.y !== dest.y) throw new SVGPathError(`Invalid point ${dest}}`);
+		super(parent, dest, relative);
 	}
-	relativeTo(other: PathSegment) {
-		return new H(this.dest.relativeTo(other.dest), true);
+	asRelative(): string {
+		return `h${this.dest.relativeTo(this.prev.dest).x}`;
 	}
-	valid(): boolean {
-		return this.dest.y === 0;
+	asAbsolute(): string {
+		return `H${this.dest.x}`;
 	}
-	toString() {
-		return super.formatOutput(`H${this.dest.x}`);
-	}
-	static from(path: LinkedList<string>, relative?: boolean): H {
+	static from(path: LinkedList<string>, parent: PathSegment, relative?: boolean): H {
 		return new H(
-			new Point(+path.pop(), 0),
+			parent,
+			PathSegment.getAbsolutePoint(parent.dest, +path.pop(), relative ? 0 : parent.dest.y, relative),
 			relative,
 		);
 	}
 }
 
 class V extends PathSegment {
-	constructor(dest: Point, relative?: boolean) {
-		if (dest.x !== 0) throw new SVGPathError("Invalid point");
-		super(dest, relative);
+	constructor(parent: PathSegment, dest: Point, relative?: boolean) {
+		if (parent.dest.x !== dest.x) throw new SVGPathError(`Invalid V: (${parent.dest}) → (${dest})`);
+		super(parent, dest, relative);
 	}
-	relativeTo(other: PathSegment) {
-		return new V(this.dest.relativeTo(other.dest), true);
+	asRelative(): string {
+		return `v${this.dest.relativeTo(this.prev.dest).y}`;
 	}
-	toString() {
-		return super.formatOutput(`V${this.dest.y}`);
+	asAbsolute(): string {
+		return `V${this.dest.y}`;
 	}
-	static from(path: LinkedList<string>, relative?: boolean): V {
+	static from(path: LinkedList<string>, parent: PathSegment, relative?: boolean): V {
 		return new V(
-			new Point(0, +path.pop()),
+			parent,
+			PathSegment.getAbsolutePoint(parent.dest, relative ? 0 : parent.dest.x, +path.pop(), relative),
 			relative,
 		);
 	}
 }
 
 class L extends PathSegment {
-	constructor(dest: Point, relative?: boolean) {
-		super(dest, relative);
+	constructor(parent: PathSegment, dest: Point, relative?: boolean) {
+		super(parent, dest, relative);
 	}
-	relativeTo(other: PathSegment) {
-		return new L(this.dest.relativeTo(other.dest), true);
+	asRelative(): string {
+		return `l${this.dest.relativeTo(this.prev.dest)}`;
 	}
-	toString() {
-		return super.formatOutput(`L${this.dest}`);
+	asAbsolute(): string {
+		return `L${this.dest}`;
 	}
-	static from(path: LinkedList<string>, relative?: boolean): L {
+	static from(path: LinkedList<string>, parent: PathSegment, relative?: boolean): L {
 		return new L(
-			new Point(+path.pop(), +path.pop()),
+			parent,
+			PathSegment.getAbsolutePoint(parent.dest, +path.pop(), +path.pop(), relative),
 			relative,
 		);
 	}
@@ -137,39 +166,41 @@ class L extends PathSegment {
 
 class Q extends PathSegment {
 	ctrl: Point;
-	constructor(control: Point, dest: Point, relative?: boolean) {
+	constructor(parent: PathSegment, control: Point, dest: Point, relative?: boolean) {
 		if (!control.control) throw new SVGPathError("Invalid control point");
-		super(dest, relative);
+		super(parent, dest, relative);
 		this.ctrl = control;
 	}
-	relativeTo(other: PathSegment) {
-		return new Q(this.dest.relativeTo(other.dest), this.ctrl.relativeTo(other.dest), true);
+	asRelative(): string {
+		return `q${this.ctrl.relativeTo(this.prev.dest)} ${this.dest.relativeTo(this.prev.dest)}`;
 	}
-	toString() {
-		return super.formatOutput(`Q${this.ctrl} ${this.dest}`);
+	asAbsolute(): string {
+		return `Q${this.ctrl} ${this.dest}`;
 	}
-	static from(path: LinkedList<string>, relative?: boolean): Q {
+	static from(path: LinkedList<string>, parent: PathSegment, relative?: boolean): Q {
 		return new Q(
-			new Point(+path.pop(), +path.pop(), true),
-			new Point(+path.pop(), +path.pop()),
+			parent,
+			PathSegment.getAbsolutePoint(parent.dest, +path.pop(), +path.pop(), relative, true),
+			PathSegment.getAbsolutePoint(parent.dest, +path.pop(), +path.pop(), relative),
 			relative,
 		);
 	}
 }
 
 class T extends PathSegment {
-	constructor(dest: Point, relative?: boolean) {
-		super(dest, relative);
+	constructor(parent: PathSegment, dest: Point, relative?: boolean) {
+		super(parent, dest, relative);
 	}
-	relativeTo(other: PathSegment) {
-		return new T(this.dest.relativeTo(other.dest), true);
+	asRelative(): string {
+		return `t${this.dest.relativeTo(this.prev.dest)}`;
 	}
-	toString() {
-		return super.formatOutput(`T${this.dest}`);
+	asAbsolute(): string {
+		return `T${this.dest}`;
 	}
-	static from(path: LinkedList<string>, relative?: boolean): T {
+	static from(path: LinkedList<string>, parent: PathSegment, relative?: boolean): T {
 		return new T(
-			new Point(+path.pop(), +path.pop()),
+			parent,
+			PathSegment.getAbsolutePoint(parent.dest, +path.pop(), +path.pop(), relative),
 			relative,
 		);
 	}
@@ -178,23 +209,24 @@ class T extends PathSegment {
 class C extends PathSegment {
 	ctrl1: Point;
 	ctrl2: Point;
-	constructor(control1: Point, control2: Point, dest: Point, relative?: boolean) {
+	constructor(parent: PathSegment, control1: Point, control2: Point, dest: Point, relative?: boolean) {
 		if (!control1.control || !control2.control) throw new SVGPathError("Invalid control points");
-		super(dest, relative);
+		super(parent, dest, relative);
 		this.ctrl1 = control1;
 		this.ctrl2 = control2;
 	}
-	relativeTo(other: PathSegment) {
-		return new C(this.dest.relativeTo(other.dest), this.ctrl1.relativeTo(other.dest), this.ctrl2.relativeTo(other.dest), true);
+	asRelative(): string {
+		return `c${this.ctrl1.relativeTo(this.prev.dest)} ${this.ctrl2.relativeTo(this.prev.dest)} ${this.dest.relativeTo(this.prev.dest)}`;
 	}
-	toString() {
-		return super.formatOutput(`C${this.ctrl1} ${this.ctrl2} ${this.dest}`);
+	asAbsolute(): string {
+		return `C${this.ctrl1} ${this.ctrl2} ${this.dest}`;
 	}
-	static from(path: LinkedList<string>, relative?: boolean): C {
+	static from(path: LinkedList<string>, parent: PathSegment, relative?: boolean): C {
 		return new C(
-			new Point(+path.pop(), +path.pop(), true),
-			new Point(+path.pop(), +path.pop(), true),
-			new Point(+path.pop(), +path.pop()),
+			parent,
+			PathSegment.getAbsolutePoint(parent.dest, +path.pop(), +path.pop(), relative, true),
+			PathSegment.getAbsolutePoint(parent.dest, +path.pop(), +path.pop(), relative, true),
+			PathSegment.getAbsolutePoint(parent.dest, +path.pop(), +path.pop(), relative),
 			relative,
 		);
 	}
@@ -202,21 +234,22 @@ class C extends PathSegment {
 
 class S extends PathSegment {
 	ctrl: Point;
-	constructor(control: Point, dest: Point, relative?: boolean) {
+	constructor(parent: PathSegment, control: Point, dest: Point, relative?: boolean) {
 		if (!control.control) throw new SVGPathError("Invalid control point");
-		super(dest, relative);
+		super(parent, dest, relative);
 		this.ctrl = control;
 	}
-	relativeTo(other: PathSegment) {
-		return new S(this.dest.relativeTo(other.dest), this.ctrl.relativeTo(other.dest), true);
+	asRelative(): string {
+		return `s${this.ctrl.relativeTo(this.prev.dest)} ${this.dest.relativeTo(this.prev.dest)}`;
 	}
-	toString() {
-		return super.formatOutput(`S${this.ctrl} ${this.dest}`);
+	asAbsolute(): string {
+		return `S${this.ctrl} ${this.dest}`;
 	}
-	static from(path: LinkedList<string>, relative?: boolean): S {
+	static from(path: LinkedList<string>, parent: PathSegment, relative?: boolean): S {
 		return new S(
-			new Point(+path.pop(), +path.pop(), true),
-			new Point(+path.pop(), +path.pop()),
+			parent,
+			PathSegment.getAbsolutePoint(parent.dest, +path.pop(), +path.pop(), relative, true),
+			PathSegment.getAbsolutePoint(parent.dest, +path.pop(), +path.pop(), relative),
 			relative,
 		);
 	}
@@ -228,22 +261,22 @@ class A extends PathSegment {
 	rotation: number;
 	large: boolean;
 	sweep: boolean;
-	constructor(dest: Point, rx: number, ry: number, rotation: number, large: boolean, sweep: boolean, relative?: boolean) {
+	constructor(parent: PathSegment, dest: Point, rx: number, ry: number, rotation: number, large: boolean, sweep: boolean, relative?: boolean) {
 		if (isNaN(rx) || isNaN(ry) || isNaN(rotation)) throw new SVGPathError("Invalid arc parameters");
-		super(dest, relative);
+		super(parent, dest, relative);
 		this.rx = Math.abs(rx);
 		this.ry = Math.abs(ry);
 		this.rotation = rotation;
 		this.large = large;
 		this.sweep = sweep;
 	}
-	relativeTo(other: PathSegment) {
-		return new A(this.dest.relativeTo(other.dest), this.rx, this.ry, this.rotation, this.large, this.sweep, true);
+	asRelative(): string {
+		return `a${this.rx},${this.ry} ${this.rotation} ${+this.large},${+this.sweep} ${this.dest.relativeTo(this.prev.dest)}`;
 	}
-	toString() {
-		return super.formatOutput(`A${this.rx},${this.ry} ${this.rotation} ${+this.large},${+this.sweep} ${this.dest}`);
+	asAbsolute(): string {
+		return `A${this.rx},${this.ry} ${this.rotation} ${+this.large},${+this.sweep} ${this.dest}`;
 	}
-	static from(path: LinkedList<string>, relative?: boolean): A {
+	static from(path: LinkedList<string>, parent: PathSegment, relative?: boolean): A {
 		const rx = assertNumber(+path.pop());
 		const ry = assertNumber(+path.pop());
 		const rotation = assertNumber(+path.pop());
@@ -274,7 +307,8 @@ class A extends PathSegment {
 		if (sweep !== 0 && sweep !== 1) throw new SVGPathError("Invalid arc sweep flag");
 		let y = +path.pop();
 		return new A(
-			new Point(x, y),
+			parent,
+			PathSegment.getAbsolutePoint(parent.dest, x, y, relative),
 			rx, ry, rotation,
 			Boolean(large), Boolean(sweep),
 			relative,
@@ -283,79 +317,114 @@ class A extends PathSegment {
 }
 
 class Z extends PathSegment {
-	constructor(start: M, relative?: boolean) {
-		super(start.dest, relative);
+	constructor(parent: PathSegment, end: M, relative?: boolean) {
+		super(parent, end.dest, relative);
 	}
-	relativeTo(other: PathSegment) {
-		return this;
+	asRelative(): string {
+		return "z";
 	}
-	toString() {
-		return super.formatOutput("z");
+	asAbsolute(): string {
+		return "Z";
 	}
 }
 
 export class Path {
-	// points: Map<string, Point>;
-	segments: PathSegment[];
+	#head: M;
+	#tail: PathSegment;
 	#lastM: M;
-	constructor(draw: string) {
-		// this.points = new Map<string, Point>();
-		this.segments = [];
-		this.#parse(draw);
+	constructor(draw?: string) {
+		if (draw) this.#parse(draw);
 	}
 	#parse(draw: string) {
 		// This regular expression matches svg path commands and numbers
 		const path = new LinkedList(draw.match(/[a-z]|-?\d*\.?\d+/gi).reverse());
-		if (path.length > 0 && path.peak().toLowerCase() !== "m") throw new SVGPathError("Missing initial moveto");
-		let lastM: M;
 		let command: string;
+		if (path.length > 0) {
+			command = path.pop();
+			if (command.toLowerCase() !== "m") throw new SVGPathError("Missing initial moveto");
+			this.#head = M.from(path, null, command.toLowerCase() === command);
+			this.#lastM = this.#head;
+			this.#tail = this.#head;
+		}
 		while (path.length > 0) {
-			if (isNaN(+path.peak())) {
+			if (isNaN(+path.peek())) {
 				command = path.pop();
 			}
 			const relative = command.toLowerCase() === command;
 			switch (command.toLowerCase()) {
 				case "m":
-					this.segments.push(M.from(path, relative));
-					this.#lastM = this.segments.at(-1) as M;
+					this.#tail = M.from(path, this.#tail, relative);
+					this.#lastM = this.#tail as M;
 					break;
 				case "h":
-					this.segments.push(H.from(path, relative));
+					this.#tail = H.from(path, this.#tail, relative);
 					break;
 				case "v":
-					this.segments.push(V.from(path, relative));
+					this.#tail = V.from(path, this.#tail, relative);
 					break;
 				case "l":
-					this.segments.push(L.from(path, relative));
+					this.#tail = L.from(path, this.#tail, relative);
 					break;
 				case "q":
-					this.segments.push(Q.from(path, relative));
+					this.#tail = Q.from(path, this.#tail, relative);
 					break;
 				case "t":
-					this.segments.push(T.from(path, relative));
+					this.#tail = T.from(path, this.#tail, relative);
 					break;
 				case "c":
-					this.segments.push(C.from(path, relative));
+					this.#tail = C.from(path, this.#tail, relative);
 					break;
 				case "s":
-					this.segments.push(S.from(path, relative));
+					this.#tail = S.from(path, this.#tail, relative);
 					break;
 				case "a":
-					this.segments.push(A.from(path, relative));
+					this.#tail = A.from(path, this.#tail, relative);
 					break;
 				case "z":
-					this.segments.push(new Z(this.#lastM, relative));
+					this.#tail = new Z(this.#tail, this.#lastM, relative);
 					break;
 				default:
 					throw new SVGPathError(`Invalid path command: ${command}`);
 			}
 		}
 	}
-	// relativeTo(point?: Point = Point.ORIGIN) {
 
-	// }
-
+	[Symbol.iterator]() {
+		let current: PathSegment = this.#head;
+		return {
+			next: () => {
+				if (current) {
+					const value = current;
+					current = current.next;
+					return { value, done: false };
+				} else {
+					return { done: true };
+				}
+			},
+		};
+	}
+	relative(delimiter: string = " ") {
+		const result = [];
+		for (const segment of this) {
+			result.push(segment.asRelative());
+		}
+		return result.join(delimiter);
+	}
+	absolute(delimiter: string = " ") {
+		const result = [];
+		for (const segment of this) {
+			result.push(segment.asAbsolute());
+		}
+		return result.join(delimiter);
+	}
 	toString(delimiter: string = " ") {
-		return this.segments.join(delimiter);
+		return [...this].join(delimiter);
+	}
+	get length() {
+		let total = 0;
+		for (const segment of this) {
+			++total;
+		}
+		return total;
 	}
 }

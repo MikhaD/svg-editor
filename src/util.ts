@@ -130,7 +130,7 @@ export class LinkedList<T> {
 		return data;
 	}
 	/** Return the element at the end of the list */
-	peak(): T | null {
+	peek(): T | null {
 		return this.#tail?.data ?? null;
 	}
 	/** The number of items in the linked list */

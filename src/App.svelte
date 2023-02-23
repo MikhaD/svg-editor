@@ -4,10 +4,11 @@
 	import Checkbox from "./lib/Checkbox.svelte";
 	import { roundToNearest } from "./util";
 	import { Shortcut } from "./shortcut";
-	import { Path, Point } from "./path";
+	import { Path as PathObj, Point } from "./path";
 	import Toolbar from "./lib/Toolbar.svelte";
 	import { Shortcuts } from "./lib/shortcut";
 	import Testing from "./lib/Testing.svelte";
+	import Path from "./lib/Path.svelte";
 
 	/** The directory to look for cursor svg files */
 	export let cursorDir: String;
@@ -44,6 +45,24 @@
 				points = points;
 			},
 		}),
+		new Shortcut({
+			default_combo: "ctrl+=",
+			description: "Zoom in",
+			callback: (e) => {
+				e.preventDefault();
+				console.log("zoom in");
+				gridSize += 10;
+			},
+		}),
+		new Shortcut({
+			default_combo: "ctrl+-",
+			description: "Zoom out",
+			callback: (e) => {
+				e.preventDefault();
+				console.log("zoom out");
+				gridSize -= 10;
+			},
+		}),
 	];
 
 	function onMouseMove(e: MouseEvent & { currentTarget: EventTarget & HTMLElement }) {
@@ -73,6 +92,7 @@
 	}
 
 	function onKeyPress(e: KeyboardEvent) {
+		console.log(e);
 		const active: HTMLElement = document.activeElement as HTMLElement;
 		if (
 			(active instanceof HTMLInputElement && active.dataset.blockShortcuts !== "false") ||
@@ -88,12 +108,6 @@
 			shortcut.try(e);
 		}
 	}
-
-	console.log(
-		new Path(
-			"M20 20C30 10 40 10 50 20S70 30 80 20S100 10 110 20A50 40 50 11120 110Q110 90 100 110T80 110 60 110 40 110 20 90Z"
-		).toString("\n")
-	);
 </script>
 
 <svelte:body on:keydown={onKeyPress} />
@@ -134,6 +148,7 @@
 			/>
 		{/each}
 		<circle cx={pointerX} cy={pointerY} r="3.5" class="point" />
+		<Path path={new PathObj("M10,10 V20 L20,30 V40 L30,50 V60 L40,70 A1,1 0 1,0 10,10")} />
 	</svg>
 </main>
 <Sidebar>
